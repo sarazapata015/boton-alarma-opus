@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Botón de Alarma</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <h1 class="titulo">🚨 Botón de Alarma Global</h1>
+
+  <button id="alarmaBtn" class="alarma-btn">
+    🔴 ALARMA
+  </button>
+
+  <!-- MODAL -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>🚨 ALARMA ACTIVADA</h2>
+      <p>Presiona aceptar para detener el sonido</p>
+      <button id="stopBtn" class="stop-btn">Aceptar</button>
+    </div>
+  </div>
+
+  <audio id="alarmaAudio" src="alarma.mp3" loop></audio>
+
+  <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
