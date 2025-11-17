@@ -5,7 +5,7 @@ let io;
 export default function handler(req, res) {
   if (!io) {
     io = new Server(res.socket.server, {
-      path: "/socket.io",
+      path: "/api/socket",
       addTrailingSlash: false
     });
 
@@ -17,8 +17,8 @@ export default function handler(req, res) {
       });
     });
 
-    console.log("Socket.io inicializado");
+    console.log("Socket.io listo");
   }
 
-  res.end("Socket.io listo");
+  res.end("Servidor Socket.IO activo");
 }

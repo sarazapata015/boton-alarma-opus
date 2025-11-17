@@ -35,7 +35,6 @@ body {
   box-shadow: 0 0 40px rgb(255, 100, 100);
 }
 
-/* Modal */
 .modal {
   display: none;
   position: fixed;
@@ -75,7 +74,7 @@ body {
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script>
 const socket = io("https://boton-alarma-opus-99gh.vercel.app", {
-  path: "/socket.io"
+  path: "/api/socket"
 });
 
 const boton = document.getElementById("btn-alarma");
@@ -83,7 +82,7 @@ const audio = document.getElementById("audio");
 const modal = document.getElementById("alertModal");
 
 boton.onclick = () => {
-  socket.emit("triggerAlert"); 
+  socket.emit("triggerAlert");
   alert("Alarma enviada.");
 };
 
