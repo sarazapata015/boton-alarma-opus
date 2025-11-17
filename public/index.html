@@ -2,44 +2,136 @@
 <html>
 <head>
   <title>Botón Alarma OPUS</title>
-</head>
-<body>
-  <h1>🚨 Botón de Alarma</h1>
 
-  <button onclick="activarAlarma()" style="padding:20px; font-size:25px;">
-    ACTIVAR ALARMA
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d0d0d;
+      color: white;
+      text-align: center;
+      padding-top: 70px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 50px;
+      color: #ff4d4d;
+      text-shadow: 0 0 8px red;
+    }
+
+    /* Botón redondo estilo industrial */
+    #btn-alarma {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: none;
+      background: radial-gradient(circle, #ff1a1a, #b30000);
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(255,0,0,0.9), 
+                  inset 0 0 20px rgba(255,180,180,0.5);
+      transition: 0.2s;
+      font-size: 22px;
+      font-weight: bold;
+      color: #fff;
+      animation: pulso 2s infinite ease-in-out;
+    }
+
+    /* Efecto de pulsación */
+    @keyframes pulso {
+      0% { transform: scale(1); box-shadow: 0 0 25px rgba(255,0,0,0.9); }
+      50% { transform: scale(1.07); box-shadow: 0 0 45px rgba(255,0,0,1); }
+      100% { transform: scale(1); box-shadow: 0 0 25px rgba(255,0,0,0.9); }
+    }
+
+    /* Efecto al presionar */
+    #btn-alarma:active {
+      transform: scale(0.9);
+      box-shadow: 0 0 60px rgba(255,0,0,1), inset 0 0 40px rgba(120,0,0,0.9);
+    }
+
+    /* Popup notificaciones */
+    .popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(255,0,0,0.6);
+      opacity: 0;
+      animation: aparecer 0.4s forwards;
+    }
+
+    @keyframes aparecer {
+      to { opacity: 1; transform: translateY(-5px); }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🚨 Botón de Alarma OPUS</h1>
+
+  <button id="btn-alarma" onclick="activarAlarma()">
+    ALERTA
   </button>
 
+  <!-- Sonido fuerte -->
   <audio id="sonidoAlarma" loop>
     <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
   </audio>
 
+
   <script>
-    async function activarAlarma() {
-      await fetch("/api/alerta", { method: "POST" });
-      alert("Alarma enviada 🔔");
+    let yoActive = false; // El que presiona no escucha
+
+    function mostrarPopup(texto) {
+      const p = document.createElement("div");
+      p.className = "popup";
+      p.innerText = texto;
+
+      document.body.appendChild(p);
+
+      setTimeout(() => p.remove(), 3800);
     }
 
-    // Cada 1 segundo revisa si alguien activó la alarma
+    async function activarAlarma() {
+      yoActive = true;
+
+      await fetch("/api/alerta", { method: "POST" });
+      mostrarPopup("🔴 Alarma enviada");
+
+      const btn = document.getElementById("btn-alarma");
+      btn.style.background = "radial-gradient(circle, #b30000, #660000)";
+      btn.style.boxShadow = "0 0 70px rgba(255,0,0,1)";
+      btn.innerText = "ENVIADO";
+    }
+
+    // Revisión constante
     setInterval(async () => {
       const r = await fetch("/api/alerta");
       const data = await r.json();
-      if (data.alarma) {
+      
+      // Si alguien activó Y yo no fui → suena
+      if (data.alarma && !yoActive) {
         sonarAlarma();
       }
     }, 1000);
 
     function sonarAlarma() {
       const audio = document.getElementById("sonidoAlarma");
-      audio.play();
+      audio.play().catch(() => {});
 
-      const confirmar = confirm("🚨 ALARMA ACTIVADA\n\nPresiona ACEPTAR para detenerla.");
+      const confirmar = confirm("🚨 ¡ALERTA ACTIVADA!\n\nPresiona ACEPTAR para detenerla.");
 
       if (confirmar) {
         audio.pause();
+        audio.currentTime = 0;
         fetch("/api/alerta", { method: "DELETE" });
+        mostrarPopup("🔕 Alarma detenida");
       }
     }
   </script>
+
 </body>
 </html>
