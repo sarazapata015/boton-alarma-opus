@@ -1,24 +1,29 @@
 import { Server } from "socket.io";
 
-let io;
-
 export default function handler(req, res) {
-  if (!io) {
-    io = new Server(res.socket.server, {
+  if (!res.socket.server.io) {
+    console.log("🔌 Iniciando Socket.io...");
+
+    const io = new Server(res.socket.server, {
       path: "/api/socket",
-      addTrailingSlash: false
+      addTrailingSlash: false,
+      cors: {
+        origin: "*",
+      }
     });
 
     io.on("connection", (socket) => {
       console.log("Cliente conectado");
 
       socket.on("triggerAlert", () => {
-        socket.broadcast.emit("receiveAlert");
+        io.emit("receiveAlert");
       });
     });
 
-    console.log("Socket.io listo");
+    res.socket.server.io = io;
+  } else {
+    console.log("🔁 Socket.io ya estaba listo.");
   }
 
-  res.end("Servidor Socket.IO activo");
+  res.end();
 }
