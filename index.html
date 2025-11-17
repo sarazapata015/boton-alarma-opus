@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alarma App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 60px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .start-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .start-btn:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        .start-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 50px 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h2 {
+            color: #e74c3c;
+            margin-bottom: 20px;
+            font-size: 28px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .stop-btn {
+            background: #e74c3c;
+            color: white;
+            margin-top: 20px;
+            padding: 15px 60px;
+            font-size: 18px;
+        }
+
+        .stop-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .stop-btn:active {
+            transform: scale(0.98);
+        }
+
+        .alarm-indicator {
+            display: none;
+            margin-top: 20px;
+            color: #e74c3c;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+
+        .alarm-indicator.active {
+            display: block;
+        }
+
+        @keyframes blink {
+            0%, 50% {
+                opacity: 1;
+            }
+            51%, 100% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Alarma App</h1>
+        <div class="button-container">
+            <button class="start-btn" onclick="startAlarm()">Iniciar Alarma</button>
+        </div>
+        <div class="alarm-indicator" id="indicator">🔴 ALARMA ACTIVA</div>
+    </div>
+
+    <!-- Modal de Alarma -->
+    <div class="modal" id="alarmModal">
+        <div class="modal-content">
+            <h2>⚠️ ¡ALARMA!</h2>
+            <p style="font-size: 18px; color: #666; margin-bottom: 20px;">Presiona el botón para detener</p>
+            <button class="stop-btn" onclick="stopAlarm()">Detener Alarma</button>
+        </div>
+    </div>
+
+    <script>
+        let audioContext;
+        let oscillator;
+        let gainNode;
+        let isAlarmActive = false;
+
+        function startAlarm() {
+            if (isAlarmActive) return;
+            
+            isAlarmActive = true;
+            
+            // Mostrar modal
+            document.getElementById('alarmModal').classList.add('show');
+            document.getElementById('indicator').classList.add('active');
+            
+            // Inicializar audio
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            // Crear oscilador
+            oscillator = audioContext.createOscillator();
+            gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Configurar sonido de alarma (frecuencia alternada)
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.15);
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.3);
+            
+            // Volumen
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            
+            oscillator.start();
+            
+            // Hacer que la frecuencia alterne
+            setAlarmPattern();
+        }
+
+        function setAlarmPattern() {
+            if (!isAlarmActive) return;
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.15);
+            
+            setTimeout(setAlarmPattern, 300);
+        }
+
+        function stopAlarm() {
+            if (!isAlarmActive) return;
+            
+            isAlarmActive = false;
+            
+            // Detener sonido
+            if (oscillator) {
+                oscillator.stop();
+                oscillator.disconnect();
+            }
+            
+            // Ocultar modal
+            document.getElementById('alarmModal').classList.remove('show');
+            document.getElementById('indicator').classList.remove('active');
+        }
+
+        // Prevenir cerrar modal con ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && isAlarmActive) {
+                event.preventDefault();
+            }
+        });
+
+        // Prevenir cerrar modal al hacer clic fuera
+        document.getElementById('alarmModal').addEventListener('click', function(event) {
+            if (isAlarmActive && event.target === this) {
+                event.stopPropagation();
+            }
+        });
+    </script>
+</body>
+</html>
