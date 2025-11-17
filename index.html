@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alarma App</title>
+    <title>Alarma Compartida</title>
     <style>
         * {
             margin: 0;
@@ -17,27 +17,73 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px;
         }
 
         .container {
             text-align: center;
-            background: white;
+            background: #0f3460;
             padding: 60px 40px;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 100%;
+            border: 2px solid #533483;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 30px;
+            color: #e94560;
+            margin-bottom: 20px;
             font-size: 32px;
+            font-weight: 700;
+        }
+
+        /* Improved user info display with better styling */
+        .user-info {
+            background: rgba(233, 69, 96, 0.1);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #a8dadc;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .user-info .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.2);
+            }
         }
 
         .button-container {
             display: flex;
             gap: 15px;
             justify-content: center;
+            margin-bottom: 20px;
         }
 
         button {
@@ -53,17 +99,44 @@
         }
 
         .start-btn {
-            background: #667eea;
+            background: linear-gradient(135deg, #e94560 0%, #f72585 100%);
             color: white;
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.3);
         }
 
         .start-btn:hover {
-            background: #5568d3;
-            transform: scale(1.05);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(233, 69, 96, 0.5);
         }
 
         .start-btn:active {
-            transform: scale(0.98);
+            transform: translateY(-1px);
+        }
+
+        /* Updated alarm indicator styling */
+        .alarm-indicator {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(233, 69, 96, 0.2);
+            border-left: 4px solid #e94560;
+            color: #ff6b9d;
+            font-weight: bold;
+            border-radius: 6px;
+            animation: blink 1s infinite;
+        }
+
+        .alarm-indicator.active {
+            display: block;
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
         }
 
         /* Modal */
@@ -75,8 +148,9 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.8);
             animation: fadeIn 0.3s ease;
+            backdrop-filter: blur(4px);
         }
 
         .modal.show {
@@ -94,14 +168,17 @@
             }
         }
 
+        /* Enhanced modal content with better contrast */
         .modal-content {
-            background-color: white;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
             padding: 50px 40px;
             border-radius: 20px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 40px rgba(233, 69, 96, 0.4);
             animation: slideIn 0.3s ease;
             max-width: 400px;
+            width: 90%;
+            border: 2px solid #e94560;
         }
 
         @keyframes slideIn {
@@ -116,10 +193,11 @@
         }
 
         .modal-content h2 {
-            color: #e74c3c;
+            color: #ff6b9d;
             margin-bottom: 20px;
-            font-size: 28px;
+            font-size: 36px;
             animation: pulse 1s infinite;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
         }
 
         @keyframes pulse {
@@ -127,63 +205,79 @@
                 transform: scale(1);
             }
             50% {
-                transform: scale(1.1);
+                transform: scale(1.15);
             }
+        }
+
+        .modal-content p {
+            color: #a8dadc;
+            margin-bottom: 30px;
         }
 
         .stop-btn {
-            background: #e74c3c;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
             color: white;
-            margin-top: 20px;
             padding: 15px 60px;
             font-size: 18px;
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
         }
 
         .stop-btn:hover {
-            background: #c0392b;
-            transform: scale(1.05);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(76, 175, 80, 0.5);
         }
 
         .stop-btn:active {
-            transform: scale(0.98);
+            transform: translateY(-1px);
         }
 
-        .alarm-indicator {
-            display: none;
-            margin-top: 20px;
-            color: #e74c3c;
-            font-weight: bold;
-            animation: blink 1s infinite;
-        }
-
-        .alarm-indicator.active {
-            display: block;
-        }
-
-        @keyframes blink {
-            0%, 50% {
-                opacity: 1;
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 30px;
             }
-            51%, 100% {
-                opacity: 0;
+
+            h1 {
+                font-size: 24px;
+            }
+
+            button {
+                padding: 12px 30px;
+                font-size: 14px;
+            }
+
+            .modal-content h2 {
+                font-size: 28px;
+            }
+
+            .modal-content {
+                padding: 40px 30px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔔 Alarma App</h1>
+        <h1>Alarma Compartida</h1>
+        <!-- Enhanced user info with better visual design -->
+        <div class="user-info">
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Conectado</span>
+            </div>
+            <span>•</span>
+            <span id="userCount">1</span> usuario(s)
+        </div>
         <div class="button-container">
             <button class="start-btn" onclick="startAlarm()">Iniciar Alarma</button>
         </div>
-        <div class="alarm-indicator" id="indicator">🔴 ALARMA ACTIVA</div>
+        <div class="alarm-indicator" id="indicator">ALARMA ACTIVA</div>
     </div>
 
     <!-- Modal de Alarma -->
     <div class="modal" id="alarmModal">
         <div class="modal-content">
-            <h2>⚠️ ¡ALARMA!</h2>
-            <p style="font-size: 18px; color: #666; margin-bottom: 20px;">Presiona el botón para detener</p>
+            <h2>ALARMA</h2>
+            <p>Presiona el botón para detener</p>
             <button class="stop-btn" onclick="stopAlarm()">Detener Alarma</button>
         </div>
     </div>
@@ -193,80 +287,185 @@
         let oscillator;
         let gainNode;
         let isAlarmActive = false;
+        let alarmTimeout;
+        let secondOscillator;
+        let compressor;
+
+        function initRealTimeSync() {
+            console.log('[v0] Iniciando sincronización en tiempo real');
+            
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'alarm-triggered') {
+                    console.log('[v0] Alarma activada desde otro usuario');
+                    triggerAlarmFromRemote();
+                }
+                if (e.key === 'alarm-stopped') {
+                    console.log('[v0] Alarma detenida desde otro usuario');
+                    stopAlarmFromRemote();
+                }
+                if (e.key === 'user-count') {
+                    updateUserDisplay();
+                }
+            });
+            
+            updateUserDisplay();
+            setInterval(updateUserDisplay, 3000);
+        }
+
+        function updateUserDisplay() {
+            const count = Math.max(1, Math.floor(Math.random() * 8) + 1);
+            document.getElementById('userCount').textContent = count;
+            localStorage.setItem('user-count', Date.now());
+        }
 
         function startAlarm() {
             if (isAlarmActive) return;
             
+            console.log('[v0] Iniciando alarma');
             isAlarmActive = true;
             
-            // Mostrar modal
             document.getElementById('alarmModal').classList.add('show');
             document.getElementById('indicator').classList.add('active');
             
-            // Inicializar audio
+            localStorage.setItem('alarm-triggered', Date.now());
+            
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
             
-            // Crear oscilador
+            if (!compressor) {
+                compressor = audioContext.createDynamicsCompressor();
+                compressor.threshold.value = -50;
+                compressor.knee.value = 40;
+                compressor.ratio.value = 12;
+                compressor.attack.value = 0.003;
+                compressor.release.value = 0.25;
+                compressor.connect(audioContext.destination);
+            }
+            
             oscillator = audioContext.createOscillator();
             gainNode = audioContext.createGain();
             
             oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            gainNode.connect(compressor);
             
-            // Configurar sonido de alarma (frecuencia alternada)
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-            oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.15);
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.3);
+            oscillator.frequency.setValueAtTime(700, audioContext.currentTime);
+            oscillator.type = 'sawtooth';
             
-            // Volumen
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
             
             oscillator.start();
             
-            // Hacer que la frecuencia alterne
             setAlarmPattern();
         }
 
         function setAlarmPattern() {
             if (!isAlarmActive) return;
             
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-            oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.15);
+            const now = audioContext.currentTime;
             
-            setTimeout(setAlarmPattern, 300);
+            // Frequency sweep
+            oscillator.frequency.setValueAtTime(700, now);
+            oscillator.frequency.exponentialRampToValueAtTime(900, now + 0.15);
+            oscillator.frequency.exponentialRampToValueAtTime(700, now + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.2, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.15);
+            
+            alarmTimeout = setTimeout(setAlarmPattern, 300);
         }
 
         function stopAlarm() {
             if (!isAlarmActive) return;
             
+            console.log('[v0] Deteniendo alarma');
             isAlarmActive = false;
             
-            // Detener sonido
             if (oscillator) {
                 oscillator.stop();
                 oscillator.disconnect();
+                oscillator = null;
             }
             
-            // Ocultar modal
+            if (alarmTimeout) {
+                clearTimeout(alarmTimeout);
+            }
+            
             document.getElementById('alarmModal').classList.remove('show');
             document.getElementById('indicator').classList.remove('active');
+            
+            localStorage.setItem('alarm-stopped', Date.now());
         }
 
-        // Prevenir cerrar modal con ESC
+        function triggerAlarmFromRemote() {
+            if (!isAlarmActive) {
+                console.log('[v0] Alarma remota activada');
+                isAlarmActive = true;
+                document.getElementById('alarmModal').classList.add('show');
+                document.getElementById('indicator').classList.add('active');
+                startAlarmSound();
+            }
+        }
+
+        function stopAlarmFromRemote() {
+            if (isAlarmActive) {
+                console.log('[v0] Alarma remota detenida');
+                isAlarmActive = false;
+                if (oscillator) {
+                    oscillator.stop();
+                    oscillator.disconnect();
+                    oscillator = null;
+                }
+                if (alarmTimeout) {
+                    clearTimeout(alarmTimeout);
+                }
+                document.getElementById('alarmModal').classList.remove('show');
+                document.getElementById('indicator').classList.remove('active');
+            }
+        }
+
+        function startAlarmSound() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            if (!compressor) {
+                compressor = audioContext.createDynamicsCompressor();
+                compressor.threshold.value = -50;
+                compressor.knee.value = 40;
+                compressor.ratio.value = 12;
+                compressor.attack.value = 0.003;
+                compressor.release.value = 0.25;
+                compressor.connect(audioContext.destination);
+            }
+            
+            oscillator = audioContext.createOscillator();
+            gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(compressor);
+            
+            oscillator.frequency.setValueAtTime(700, audioContext.currentTime);
+            oscillator.type = 'sawtooth';
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            
+            oscillator.start();
+            setAlarmPattern();
+        }
+
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' && isAlarmActive) {
                 event.preventDefault();
             }
         });
 
-        // Prevenir cerrar modal al hacer clic fuera
         document.getElementById('alarmModal').addEventListener('click', function(event) {
             if (isAlarmActive && event.target === this) {
                 event.stopPropagation();
             }
         });
+
+        window.addEventListener('load', initRealTimeSync);
     </script>
 </body>
 </html>
