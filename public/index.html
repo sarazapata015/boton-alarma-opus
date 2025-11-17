@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Botón de Alarma</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  color: white;
+}
+
+#btn-alarma {
+  width: 200px;
+  height: 200px;
+  background: red;
+  border-radius: 50%;
+  border: none;
+  color: white;
+  font-size: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 20px red;
+  transition: 0.2s;
+}
+
+#btn-alarma:active {
+  transform: scale(0.9);
+  box-shadow: 0 0 40px rgb(255, 100, 100);
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  color: black;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<button id="btn-alarma">ALERTA</button>
+
+<div class="modal" id="alertModal">
+  <div class="modal-content">
+    <h2>🚨 Alarma recibida</h2>
+    <p>Haz clic para detener el sonido.</p>
+    <button onclick="detenerAlarma()">Aceptar</button>
+  </div>
+</div>
+
+<audio id="audio" src="/alarma.mp3" loop></audio>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+const socket = io("https://boton-alarma-opus-99gh.vercel.app", {
+  path: "/socket.io"
+});
+
+const boton = document.getElementById("btn-alarma");
+const audio = document.getElementById("audio");
+const modal = document.getElementById("alertModal");
+
+boton.onclick = () => {
+  socket.emit("triggerAlert"); 
+  alert("Alarma enviada.");
+};
+
+socket.on("receiveAlert", () => {
+  modal.style.display = "flex";
+  audio.play();
+});
+
+function detenerAlarma() {
+  audio.pause();
+  audio.currentTime = 0;
+  modal.style.display = "none";
+}
+</script>
+
+</body>
+</html>
