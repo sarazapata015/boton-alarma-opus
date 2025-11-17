@@ -1,118 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Botón Alarma Opus</title>
-  <meta charset="utf-8" />
-  <style>
-    body{
-      font-family: Arial;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      background:#222;
-      color:white;
-      flex-direction: column;
-    }
-    button{
-      padding:20px 40px;
-      font-size:30px;
-      background:red;
-      border:none;
-      border-radius:10px;
-      color:white;
-      cursor:pointer;
-    }
-    /* Modal */
-    #modalFondo{
-      position: fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background: rgba(0,0,0,0.85);
-      display:none;
-      justify-content:center;
-      align-items:center;
-      z-index: 9999;
-    }
-    #modal{
-      background:white;
-      color:black;
-      padding:30px;
-      border-radius:10px;
-      text-align:center;
-      width:320px;
-      font-size:18px;
-    }
-    #modal button{
-      margin-top:15px;
-      padding:10px 20px;
-      font-size:16px;
-      background:#007bff;
-      color:white;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-    }
-  </style>
+  <title>Botón Alarma OPUS</title>
 </head>
 <body>
+  <h1>🚨 Botón de Alarma</h1>
 
-<h1>🔴 Botón de Alarma Opus</h1>
-<button id="btn">Activar Alarma</button>
+  <button onclick="activarAlarma()" style="padding:20px; font-size:25px;">
+    ACTIVAR ALARMA
+  </button>
 
-<audio id="audio" src="alarma.mp3" loop></audio>
+  <audio id="sonidoAlarma" loop>
+    <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
+  </audio>
 
-<!-- MODAL -->
-<div id="modalFondo" role="dialog" aria-modal="true">
-  <div id="modal">
-    <p style="font-weight:700">⚠️ Alarma recibida</p>
-    <p>Presiona <strong>Aceptar</strong> para detenerla.</p>
-    <button id="cerrarModal">Aceptar</button>
-  </div>
-</div>
-
-<script>
-  // Conexión WebSocket
-  const ws = new WebSocket(`wss://${window.location.host}/api/ws`);
-  const audio = document.getElementById("audio");
-  const modalFondo = document.getElementById("modalFondo");
-  const cerrarModal = document.getElementById("cerrarModal");
-  const btn = document.getElementById("btn");
-
-  // Mensajes entrantes: reproducir y mostrar modal
-  ws.onmessage = (msg) => {
-    if (msg.data === "play") {
-      // Intentar reproducir; si el navegador bloquea autoplay,
-      // el usuario deberá interactuar con la página (ver notas)
-      audio.volume = 1.0;
-      audio.play().catch((e)=> {
-        // Si es bloqueado, mostramos una instrucción en modal
-        console.warn("Autoplay bloqueado:", e);
-      });
-      modalFondo.style.display = "flex";
+  <script>
+    async function activarAlarma() {
+      await fetch("/api/alerta", { method: "POST" });
+      alert("Alarma enviada 🔔");
     }
-  };
 
-  // Enviar alarma (quien presiona no recibe el play)
-  btn.onclick = () => {
-    try { ws.send("alarma"); } catch(e) { console.error(e); }
-  };
+    // Cada 1 segundo revisa si alguien activó la alarma
+    setInterval(async () => {
+      const r = await fetch("/api/alerta");
+      const data = await r.json();
+      if (data.alarma) {
+        sonarAlarma();
+      }
+    }, 1000);
 
-  // Cerrar modal y detener audio
-  cerrarModal.onclick = () => {
-    audio.pause();
-    audio.currentTime = 0;
-    modalFondo.style.display = "none";
-  };
+    function sonarAlarma() {
+      const audio = document.getElementById("sonidoAlarma");
+      audio.play();
 
-  // OPCIONAL: permitir que el primer click habilite audio (evita bloqueo)
-  // Si quieres, descomenta estas líneas para "activar" audio al primer click en la página:
-  /*
-  window.addEventListener('click', () => {
-    audio.muted = false;
-  }, { once: true });
-  */
-</script>
+      const confirmar = confirm("🚨 ALARMA ACTIVADA\n\nPresiona ACEPTAR para detenerla.");
 
+      if (confirmar) {
+        audio.pause();
+        fetch("/api/alerta", { method: "DELETE" });
+      }
+    }
+  </script>
 </body>
 </html>
